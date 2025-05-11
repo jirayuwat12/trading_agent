@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+data/
+
+notebooks/playground_*.ipynb
+!notebooks/playground_option.ipynb

@@ -5,5 +5,21 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "black[jupyter]>=25.1.0",
+    "duckdb>=1.2.2",
+    "ipykernel>=6.29.5",
+    "isort>=6.0.1",
+    "matplotlib>=3.10.3",
     "pandas>=2.2.3",
+    "seaborn>=0.13.2",
+    "tqdm>=4.67.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["trading_agent"]
+
+[dependency-groups]
+dev = [
+    "black[jupyter]>=25.1.0",
+    "isort>=6.0.1",
 ]
