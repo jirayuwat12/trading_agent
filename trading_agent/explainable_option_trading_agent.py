@@ -77,17 +77,15 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
             prob = self.compute_prob_by_forward(**kwargs)
 
         if self.picking_action_method == "random_by_prob":
-            action = random.choices(
+            next_xt = random.choices(
                 list(prob.keys()),
                 weights=list(prob.values()),
                 k=1,
             )[0]
-            action = "buy" if action == "up" else "sell"
         elif self.picking_action_method == "select_max_prob":
-            action = max(prob, key=prob.get)
-            action = "buy" if action == "up" else "sell"
+            next_xt = max(prob, key=prob.get)
 
-        return action
+        return "buy" if next_xt == "up" else "sell"
 
     def compute_prob_by_forward(self, verbose: bool = False, **kwargs) -> dict:
         if verbose:
