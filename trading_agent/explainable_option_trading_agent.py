@@ -1,9 +1,9 @@
+import copy
 import json
 import os
 import random
-import copy
-from typing import Literal
 from dataclasses import dataclass
+from typing import Literal
 
 from .base_trading_agent import BaseTradingAgent
 
@@ -18,6 +18,7 @@ class State:
     price: str = ""
     predicted_xt: Literal["up", "down"] | None = None
     predicted_action: Literal["buy", "sell"] | None = None
+
 
 class ExplainableOptionTradingAgent(BaseTradingAgent):
     def __init__(
@@ -74,11 +75,11 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
         # Save state history
         self.state_history.append(
             State(
-            sentiment_label=sentiment_major,
-            date=Date,
-            price=Close,
-            predicted_xt=None,
-            predicted_action=None,
+                sentiment_label=sentiment_major,
+                date=Date,
+                price=Close,
+                predicted_xt=None,
+                predicted_action=None,
             )
         )
         if self.inference_method == "forward_predict":
@@ -115,9 +116,11 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
                 # For next_t = {up, down}
                 new_state_p_xt[next_x] = 0
                 for prev_x in self.p_xt.keys():
-                    temp = prev_state_p_xt[prev_x] *\
-                           self.p_et_given_xt[last_state.sentiment_label][next_x] *\
-                           self.p_xt_given_xprevt[next_x][prev_x]
+                    temp = (
+                        prev_state_p_xt[prev_x]
+                        * self.p_et_given_xt[last_state.sentiment_label][next_x]
+                        * self.p_xt_given_xprevt[next_x][prev_x]
+                    )
                     new_state_p_xt[next_x] += temp
             # Set the new state p_xt and normalize
             self.state_p_xt = new_state_p_xt
@@ -132,7 +135,9 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
 
         # Predict action
         next_up_prob = self.state_p_xt[last_state.predicted_xt] * self.p_xt_given_xprevt["up"][last_state.predicted_xt]
-        next_down_prob = self.state_p_xt[last_state.predicted_xt] * self.p_xt_given_xprevt["down"][last_state.predicted_xt]
+        next_down_prob = (
+            self.state_p_xt[last_state.predicted_xt] * self.p_xt_given_xprevt["down"][last_state.predicted_xt]
+        )
         total = next_up_prob + next_down_prob
 
         return_dict = {
