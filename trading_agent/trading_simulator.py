@@ -81,13 +81,14 @@ class TradingSimulator:
 
         for _, row in self.config.price_dataframe.iterrows():
             current_date = row["Date"]
+            next_date = row["Date"] + pd.Timedelta(days=1)
             current_price = row[self.config.buy_at]
             action = agent.get_action(**row)
             if action not in VALID_ACTION_OPTIONS:
                 raise ValueError(f"Invalid action: {action}. Must be 'buy' or 'sell'.")
 
             new_order = Order(
-                order_date=current_date,
+                order_date=next_date,
                 at_price=current_price,
                 order_type=action,
                 amount=1,  # Assuming a fixed amount for simplicity
