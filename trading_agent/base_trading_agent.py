@@ -11,3 +11,10 @@ class BaseTradingAgent(ABC):
         :return: An action to be taken in the environment.
         """
         pass
+
+    def reset_state(self):
+        """
+        Reset the state of the agent.
+        This method is called at the beginning of each episode.
+        """
+        pass

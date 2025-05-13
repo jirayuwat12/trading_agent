@@ -96,20 +96,16 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
 
         action = "buy" if next_xt == "up" else "sell"
 
-        self.state_history[-1].predicted_xt = next_xt
-        self.state_history[-1].predicted_action = action
-
         return action
 
     def compute_prob_by_forward(self, verbose: bool = False, **kwargs) -> dict:
         if verbose:
             print(f"=== get action by forward ===")
-        last_state = self.state_history[-1]
         # Predict last x_t if it is None
-        if last_state.predicted_xt is None:
+        if self.state_history[-1].predicted_xt is None:
             if verbose:
-                print(f"Predicting x_t for {last_state.date}")
-                print(f"   - Sentiment: {last_state.sentiment_label}")
+                print(f"Predicting x_t for {self.state_history[-1].date}")
+                print(f"   - Sentiment: {self.state_history[-1].sentiment_label}")
             # Filtering: predict x_t from e_1:e_t
             prev_state_p_xt = copy.deepcopy(self.state_p_xt)
             if verbose:
@@ -123,7 +119,7 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
                 for prev_x in self.p_xt.keys():
                     temp = (
                         prev_state_p_xt[prev_x]
-                        * self.p_et_given_xt[last_state.sentiment_label][next_x]
+                        * self.p_et_given_xt[self.state_history[-1].sentiment_label][next_x]
                         * self.p_xt_given_xprevt[next_x][prev_x]
                     )
                     new_state_p_xt[next_x] += temp
@@ -132,16 +128,16 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
             total = sum(self.state_p_xt.values())
             for key in self.state_p_xt.keys():
                 self.state_p_xt[key] /= total
-            last_state.predicted_xt = max(self.state_p_xt, key=self.state_p_xt.get)
+            self.state_history[-1].predicted_xt = max(self.state_p_xt, key=self.state_p_xt.get)
             if verbose:
                 print(f"New state p_xt: {self.state_p_xt}")
-                print(f"Predicted x_t: {last_state.predicted_xt}")
+                print(f"Predicted x_t: {self.state_history[-1].predicted_xt}")
                 print()
 
         # Predict action
-        next_up_prob = self.state_p_xt[last_state.predicted_xt] * self.p_xt_given_xprevt["up"][last_state.predicted_xt]
+        next_up_prob = self.state_p_xt[self.state_history[-1].predicted_xt] * self.p_xt_given_xprevt["up"][self.state_history[-1].predicted_xt]
         next_down_prob = (
-            self.state_p_xt[last_state.predicted_xt] * self.p_xt_given_xprevt["down"][last_state.predicted_xt]
+            self.state_p_xt[self.state_history[-1].predicted_xt] * self.p_xt_given_xprevt["down"][self.state_history[-1].predicted_xt]
         )
         total = next_up_prob + next_down_prob
 
