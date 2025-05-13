@@ -94,7 +94,12 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
         elif self.picking_action_method == "select_max_prob":
             next_xt = max(prob, key=prob.get)
 
-        return "buy" if next_xt == "up" else "sell"
+        action = "buy" if next_xt == "up" else "sell"
+
+        self.state_history[-1].predicted_xt = next_xt
+        self.state_history[-1].predicted_action = action
+
+        return action
 
     def compute_prob_by_forward(self, verbose: bool = False, **kwargs) -> dict:
         if verbose:
