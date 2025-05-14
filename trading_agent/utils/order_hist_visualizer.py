@@ -14,7 +14,7 @@ def plot_order_history(
     marker_size: int = 70,
     marker_alpha: float = 0.5,
     line_alpha: float = 0.3,
-):
+) -> None:
     """
     Plots the order history of a trading agent.
 

@@ -72,9 +72,21 @@ run_simulation_result = namedtuple("RunSimulationResult", ["balance", "order_his
 
 class TradingSimulator:
     def __init__(self, config: TradingSimulatorConfig):
+        """
+        Initialize the TradingSimulator with the given configuration.
+
+        :param config: TradingSimulatorConfig object containing the configuration for the simulator.
+        """
         self.config = config
 
     def run_simulation(self, agent: BaseTradingAgent) -> run_simulation_result:
+        """
+        Run the trading simulation using the provided agent.
+
+        :param agent: An instance of a trading agent that implements the BaseTradingAgent interface.
+
+        :return: A named tuple containing the final balance, order history, and open orders.
+        """
         self.open_orders: list[Order] = []
         self.order_history: list[Order] = []
         self.balance = self.config.initial_balance
@@ -110,7 +122,14 @@ class TradingSimulator:
             open_orders=self.open_orders,
         )
 
-    def option_trade_order_management(self, new_order: Order, current_price: float, current_date: pd.Timestamp):
+    def option_trade_order_management(self, new_order: Order, current_price: float, current_date: pd.Timestamp) -> None:
+        """
+        Manage the order management for option trading.
+
+        :param new_order: The new order to be processed.
+        :param current_price: The current price of the asset.
+        :param current_date: The current date of the simulation.
+        """
         # Process opening orders
         new_open_orders = []
 
@@ -143,6 +162,15 @@ class TradingSimulator:
         # Process the new order
         self.open_orders.append(new_order)
 
-    def portfolio_trade_order_management(self, new_order):
+    def portfolio_trade_order_management(
+        self, new_order: Order, current_price: float, current_date: pd.Timestamp
+    ) -> None:
+        """
+        Manage the order management for portfolio trading.
+
+        :param new_order: The new order to be processed.
+        :param current_price: The current price of the asset.
+        :param current_date: The current date of the simulation.
+        """
         # Implement portfolio trade order management logic here
-        pass
+        raise NotImplementedError("Portfolio trade order management is not implemented yet.")

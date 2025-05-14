@@ -30,6 +30,19 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
         inference_method: Literal["forward_predict"] = "forward_predict",
         picking_action_method: Literal["random_by_prob", "select_max_prob"] = "select_max_prob",
     ) -> None:
+        """
+        Explainable Option Trading Agent which uses a probabilistic model to predict the next action based on the sentiment label and previous state.
+
+        :param p_et_path: Path to the JSON file containing P(e_t)
+        :param p_xt_path: Path to the JSON file containing P(x_t)
+        :param p_et_given_xt_path: Path to the JSON file containing P(e_t | x_t)
+        :param p_xt_given_xprevt_path: Path to the JSON file containing P(x_t | x_t-1)
+        :param inference_method: Method to use for inference. Currently only "forward_predict" is supported.
+        :param picking_action_method: Method to use for picking the action. Options are "random_by_prob" or "select_max_prob".
+
+        :raises FileNotFoundError: If any of the provided paths do not exist.
+        :raises ValueError: If the inference method or picking action method is not supported.
+        """
         for given_path in [p_et_path, p_xt_path, p_et_given_xt_path, p_xt_given_xprevt_path]:
             if not os.path.exists(given_path):
                 raise FileNotFoundError(f"Path does not exist: {given_path}")
@@ -59,16 +72,43 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
         self.state_p_xt = None
 
     def load_json(self, path: str) -> dict:
+        """
+        Load a JSON file and return the data.
+
+        :param path: Path to the JSON file.
+
+        :return: Data loaded from the JSON file.
+
+        :raises FileNotFoundError: If the file does not exist.
+        """
+        # Check if the file exists
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Path does not exist: {path}")
         # Load the JSON file and return the data
         with open(path, "r") as file:
             return json.load(file)
 
     def reset_state(self) -> None:
+        """
+        Reset the state of the agent. This is useful for starting a new trading session or when the agent needs to be reinitialized.
+        This method clears the state history and resets the state probability.
+        """
         # Reset the state history
         self.state_history: list[State] = []
         self.state_p_xt = None
 
     def get_action(self, sentiment_major: str, Date: str, Close: float, **kwargs) -> Literal["buy", "sell"]:
+        """
+        Get the action to take based on the sentiment label and previous state.
+        The action is determined by the probabilistic model and the specified picking action method.
+
+        :param sentiment_major: The sentiment label (e.g., "positive", "negative").
+        :param Date: The date of the current state.
+        :param Close: The closing price of the asset.
+        :param kwargs: Additional keyword arguments for future use.
+
+        :return: The action to take ("buy" or "sell").
+        """
         # Set p(x_t) to if it is None
         if self.state_p_xt is None:
             self.state_p_xt = copy.deepcopy(self.p_xt)
@@ -99,6 +139,15 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
         return action
 
     def compute_prob_by_forward(self, verbose: bool = False, **kwargs) -> dict:
+        """
+        Compute the probability of the next action using the forward prediction method.
+        This method uses the current state and the probabilistic model to predict the next action.
+
+        :param verbose: If True, print detailed information about the computation.
+        :param kwargs: Additional keyword arguments for future use.
+
+        :return: A dictionary containing the probabilities of the next action ("up" and "down").
+        """
         if verbose:
             print(f"=== get action by forward ===")
         # Predict last x_t if it is None
@@ -135,9 +184,13 @@ class ExplainableOptionTradingAgent(BaseTradingAgent):
                 print()
 
         # Predict action
-        next_up_prob = self.state_p_xt[self.state_history[-1].predicted_xt] * self.p_xt_given_xprevt["up"][self.state_history[-1].predicted_xt]
+        next_up_prob = (
+            self.state_p_xt[self.state_history[-1].predicted_xt]
+            * self.p_xt_given_xprevt["up"][self.state_history[-1].predicted_xt]
+        )
         next_down_prob = (
-            self.state_p_xt[self.state_history[-1].predicted_xt] * self.p_xt_given_xprevt["down"][self.state_history[-1].predicted_xt]
+            self.state_p_xt[self.state_history[-1].predicted_xt]
+            * self.p_xt_given_xprevt["down"][self.state_history[-1].predicted_xt]
         )
         total = next_up_prob + next_down_prob
 
